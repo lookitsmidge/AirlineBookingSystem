@@ -8,14 +8,21 @@ $(document).ready(function() {
         var form = $(this);
         var username = form.find('input[name=username]');
         var password = form.find('input[name=password]');
+        var data = form.serialize();
 
-
+        // this is the ajax post request
         $.ajax({
-            type: "POST",
-            url: 'http://localhost:8080/',
-            data: form.serialize(),
-            dataType: 'text',
-            encode: false
+            method: 'POST',
+            url: 'http://localhost:8080/log-in',
+            data: data,
+            contentType: "text",
+            encode: false,
+            success: function(data){
+                console.log(data)
+                console.log("sent");
+            },
+            error: function(err, status){
+                console.log(err);}
         }).done( function(data){
             console.log("form sent");
         });
