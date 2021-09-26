@@ -22,6 +22,7 @@ public class serverHttpHandler extends Server implements HttpHandler {
         print( "\n\nClient: " + exchange.getLocalAddress() );
         print( "Method: " + exchange.getRequestMethod() );
         print( "URI: " + exchange.getRequestURI().toString() );
+        print( "Content Length: " + exchange.getRequestHeaders().getFirst("Content-Length"));
 
         switch( exchange.getRequestMethod() ) {
             case "GET":
@@ -49,6 +50,12 @@ public class serverHttpHandler extends Server implements HttpHandler {
                 print("Do NOTHING");
                 //
                 break;
+            case "/home.html":
+
+                break;
+            case "/book.html":
+
+                break;
             default:
                 //checks if user is logged in
 
@@ -75,31 +82,51 @@ public class serverHttpHandler extends Server implements HttpHandler {
 
     }
 
+    /**
+     * This method is to handle the post request from the web client
+     * @param exchange
+     * @throws IOException
+     */
     public void handlePost( HttpExchange exchange ) throws IOException {
         switch( exchange.getRequestURI().toString().replace("%20", " ") ) {
-            case "/login.html":
+            case "/log-in":
                 print("Login form");
+                // using body of form to retrieve username and password
 
                 String body = getBody(exchange);
-                String[] content = body.split("&");
-                //pos 0 : username=<content>
-                //pos 1 : password=<content>
-                //pos 2 : <submit type>
+                print("BODY: \n" + body);
+                if ( body.equals("-1") == true) {
+                    sendResponse(exchange, new byte[0], 204);
+                } else {
 
-                String username = content[0].split("=")[1];
-                String password = content[1].split("=")[1];
+                    String[] content = body.split("&");
+                    //pos 0 : username=<content>
+                    //pos 1 : password=<content>
+                    //pos 2 : <submit type>
 
-                //check database
+                    String username = content[0].split("=")[1];
+                    String password = content[1].split("=")[1];
 
-                if( username.equals("james") && password.equals("123")) {
+                    //check database
+                    if( username.equals("james") && password.equals("123")) {
+                        print("Username and Password Match");
+                        sendResponse(exchange, new byte[0], 200);
 
+//                    sendResponse(exchange, getPanel(exchange, "home.html"), 200);
+                    } else {
+                        sendResponse(exchange, new byte[0], 406);
+                    }
                 }
-            default:
 
+                break;
+            case "/home":
+
+            default:
+                print("Body:");
+                print( getBody(exchange) );
+                sendResponse(exchange, new byte[0], 501);
+                break;
         }
-        printHeaders(exchange);
-        print("Body:");
-        print( getBody(exchange) );
         // got body response .. check form sending to - if form is login then get username and password combo
     }
 
@@ -167,6 +194,7 @@ public class serverHttpHandler extends Server implements HttpHandler {
         }
     }
 
+
     public String getBody(HttpExchange e ) {
         InputStream is = e.getRequestBody();
         StringBuilder s = new StringBuilder();
@@ -177,10 +205,18 @@ public class serverHttpHandler extends Server implements HttpHandler {
             }
             return s.toString();
         } catch (IOException ioException) {
-            ioException.printStackTrace();
+            print("NO_DATA_IN_BODY");
+//            ioException.printStackTrace();
             //body is empty
         }
         return "-1";
+    }
+
+    public byte[] getPanel(HttpExchange exchange, String pageToSend) throws IOException{
+        String directory = serverHome + "/" + pageToSend; // dont need to do the / replace as no space
+        File page = new File( directory );
+        print("Exists / Readable: " + page.exists() + " / " + page.canRead() );
+        return FU.readFromFile(directory);
     }
 }
 
