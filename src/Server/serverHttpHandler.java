@@ -1,12 +1,13 @@
 package Server;
 
 import Server.Utilities.FileUtils;
+import com.sun.net.httpserver.Headers;
 import com.sun.net.httpserver.HttpExchange;
 import com.sun.net.httpserver.HttpHandler;
 
-import java.io.File;
-import java.io.IOException;
-import java.io.OutputStream;
+import java.io.*;
+import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 
 public class serverHttpHandler extends Server implements HttpHandler {
     private String serverHome;
@@ -75,7 +76,31 @@ public class serverHttpHandler extends Server implements HttpHandler {
     }
 
     public void handlePost( HttpExchange exchange ) throws IOException {
+        switch( exchange.getRequestURI().toString().replace("%20", " ") ) {
+            case "/login.html":
+                print("Login form");
 
+                String body = getBody(exchange);
+                String[] content = body.split("&");
+                //pos 0 : username=<content>
+                //pos 1 : password=<content>
+                //pos 2 : <submit type>
+
+                String username = content[0].split("=")[1];
+                String password = content[1].split("=")[1];
+
+                //check database
+
+                if( username.equals("james") && password.equals("123")) {
+
+                }
+            default:
+
+        }
+        printHeaders(exchange);
+        print("Body:");
+        print( getBody(exchange) );
+        // got body response .. check form sending to - if form is login then get username and password combo
     }
 
     /**
@@ -127,6 +152,35 @@ public class serverHttpHandler extends Server implements HttpHandler {
         body.append("<H1>" + header + "</H1>\r\n");
         body.append("</BODY></HTML>\r\n");
         return body.toString();
+    }
+
+    /**
+     * This method is to print the headers of the http exchange
+     * @param e
+     */
+    public void printHeaders(HttpExchange e ) {
+        print("Headers:");
+        Headers headers = e.getRequestHeaders();
+        Object[] head = headers.values().toArray();
+        for( Object i : head ) {
+            print( i.toString() );
+        }
+    }
+
+    public String getBody(HttpExchange e ) {
+        InputStream is = e.getRequestBody();
+        StringBuilder s = new StringBuilder();
+        try (Reader reader = new BufferedReader( new InputStreamReader( is, Charset.forName(StandardCharsets.UTF_8.name())))){
+            int c = 0;
+            while((c = reader.read()) != -1 ) {
+                s.append((char) c);
+            }
+            return s.toString();
+        } catch (IOException ioException) {
+            ioException.printStackTrace();
+            //body is empty
+        }
+        return "-1";
     }
 }
 
