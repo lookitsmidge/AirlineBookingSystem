@@ -146,7 +146,7 @@ public class serverHttpHandler extends Server implements HttpHandler {
             default:
                 print("Body:");
                 print( getBody(exchange) );
-                sendResponse(exchange, new byte[0], 501);
+                sendResponse(exchange, htmlBuilder( "Not Implemented", "Http Error 501: Not Implemented").getBytes(), 501);
                 break;
         }
         // got body response .. check form sending to - if form is login then get username and password combo
