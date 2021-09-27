@@ -1,5 +1,9 @@
 package Server;
 
+/**
+ * this class is to start the server, this runs the Server class.
+ * this might be changed out for a gui interface for easy server management later on
+ */
 public class Main {
     public static void main(String[] args) {
         Server s = new Server();

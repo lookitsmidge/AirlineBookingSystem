@@ -1,22 +1,30 @@
 package Server;
 
-import Server.Utilities.FileUtils;
 import com.sun.net.httpserver.Headers;
 import com.sun.net.httpserver.HttpExchange;
 import com.sun.net.httpserver.HttpHandler;
-
 import java.io.*;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 
 public class serverHttpHandler extends Server implements HttpHandler {
     private String serverHome;
-    private static FileUtils FU = new FileUtils();
 
+    private boolean logged_in = false;
+
+    /**
+     * This method is a constructor that is used to set the root directory
+     * @param rootDir
+     */
     public serverHttpHandler( String rootDir ) {
         this.serverHome = rootDir;
     }
 
+    /**
+     * This method is to handle the http request that has been made from a web client
+     * @param exchange
+     * @throws IOException
+     */
     @Override
     public void handle(HttpExchange exchange) throws IOException {
         print( "\n\nClient: " + exchange.getLocalAddress() );
@@ -44,10 +52,16 @@ public class serverHttpHandler extends Server implements HttpHandler {
         }
     }
 
+    /**
+     * This method is to handle get requests that have been made. this method processes and calculates the response that should be sent back
+     * @param exchange
+     * @throws IOException
+     */
     public void handleGet( HttpExchange exchange ) throws IOException {
         switch( exchange.getRequestURI().toString().replace("%20", " ") ) {
             case "/":
-                print("Do NOTHING");
+                // send log in page ( main page )
+                sendResponse ( exchange, FU.readFromFile(getReqDir(exchange)), 200);
                 //
                 break;
             case "/home.html":
@@ -59,25 +73,32 @@ public class serverHttpHandler extends Server implements HttpHandler {
             default:
                 //checks if user is logged in
 
-                //if is logged in then home page
-
                 //if not send log in page
 
-                print("Sending Log In Page");
-                print(serverHome);
+                print("Sending");
                 String directory = getReqDir( exchange ); // dont need to do the / replace as no space
-                File page = new File( directory );
-                print("Exists / Readable: " + page.exists() + " / " + page.canRead() );
+                File page = new File( getReqDir( exchange) );
 
-                sendResponse(exchange, FU.readFromFile( directory ), 200);
+                // IMPLEMENT DIFFERENT RESPONSE CODE FOR HERE IF EXISTS IS FALSE OR CAN READ IS FALSE
+                sendResponse(exchange, FU.readFromFile(directory), 200);
                 break;
         }
     }
 
+    /**
+     * This method handles put requests that have been made from the web client
+     * @param exchange
+     * @throws IOException
+     */
     public void handlePut( HttpExchange exchange ) throws IOException {
 
     }
 
+    /**
+     * This method handles delete requests that have been made from the web client
+     * @param exchange
+     * @throws IOException
+     */
     public void handleDel( HttpExchange exchange ) throws IOException {
 
     }
@@ -89,20 +110,18 @@ public class serverHttpHandler extends Server implements HttpHandler {
      */
     public void handlePost( HttpExchange exchange ) throws IOException {
         switch( exchange.getRequestURI().toString().replace("%20", " ") ) {
+            // the web client wants to submit a log in request
             case "/log-in":
-                print("Login form");
-                // using body of form to retrieve username and password
-
+                // get the body of the HttpExchange
                 String body = getBody(exchange);
                 print("BODY: \n" + body);
-                if ( body.equals("-1") == true) {
+                if ( body.equals("-1") == true) { // if the body is empty
                     sendResponse(exchange, new byte[0], 204);
+                    // HTTP Response code 204 - no content
                 } else {
 
                     String[] content = body.split("&");
-                    //pos 0 : username=<content>
-                    //pos 1 : password=<content>
-                    //pos 2 : <submit type>
+                    //pos 0 : username=<content>; pos 1 : password=<content>; pos 2 : <submit type>
 
                     String username = content[0].split("=")[1];
                     String password = content[1].split("=")[1];
@@ -110,11 +129,14 @@ public class serverHttpHandler extends Server implements HttpHandler {
                     //check database
                     if( username.equals("james") && password.equals("123")) {
                         print("Username and Password Match");
-                        sendResponse(exchange, new byte[0], 200);
+                        sendResponse(exchange, getHTMLPage("/home.html"), 200); // this will be changed to a redirect notice
+                        // set client as logged in
+                        logged_in = true;
 
 //                    sendResponse(exchange, getPanel(exchange, "home.html"), 200);
                     } else {
                         sendResponse(exchange, new byte[0], 406);
+                        // send HTTP Response code 406 - Not acceptable
                     }
                 }
 
@@ -130,93 +152,5 @@ public class serverHttpHandler extends Server implements HttpHandler {
         // got body response .. check form sending to - if form is login then get username and password combo
     }
 
-    /**
-     * This method is to send the response to the client
-     * @param exchange
-     * @param file
-     * @param code
-     * @throws IOException
-     */
-    public void sendResponse( HttpExchange exchange, byte[] file, int code ) throws IOException {
-        if( file == null ){
-            exchange.sendResponseHeaders(code, -1);
-        } else {
-            OutputStream out = exchange.getResponseBody();
-            exchange.sendResponseHeaders(code, file.length);
-            out.write(file);
-            out.flush();
-            out.close();
-        }
-    }
-
-    /**
-     * This method is to get the directory that was requested as a string
-     * @param exchange
-     * @return
-     */
-    public String getReqDir(HttpExchange exchange) {
-        //need to improve for efficiency
-        String requestDir = exchange.getRequestURI().toString();
-        if ( requestDir == "/" ) {
-            requestDir += "login.html";
-        }
-        print("Dir: " + requestDir);
-        requestDir = serverHome + requestDir;
-        return requestDir;
-    }
-
-    /**
-     * This method builds html code to be used with the responses of error messages and such
-     * @param title
-     * @param header
-     * @return
-     */
-    public String htmlBuilder(String title, String header) {
-        StringBuilder body = new StringBuilder("<HTML>\r\n");
-        body.append("<HEAD><TITLE>" + title + "</TITLE>\r\n");
-        body.append("</HEAD>\r\n");
-        body.append("<BODY>");
-        body.append("<H1>" + header + "</H1>\r\n");
-        body.append("</BODY></HTML>\r\n");
-        return body.toString();
-    }
-
-    /**
-     * This method is to print the headers of the http exchange
-     * @param e
-     */
-    public void printHeaders(HttpExchange e ) {
-        print("Headers:");
-        Headers headers = e.getRequestHeaders();
-        Object[] head = headers.values().toArray();
-        for( Object i : head ) {
-            print( i.toString() );
-        }
-    }
-
-
-    public String getBody(HttpExchange e ) {
-        InputStream is = e.getRequestBody();
-        StringBuilder s = new StringBuilder();
-        try (Reader reader = new BufferedReader( new InputStreamReader( is, Charset.forName(StandardCharsets.UTF_8.name())))){
-            int c = 0;
-            while((c = reader.read()) != -1 ) {
-                s.append((char) c);
-            }
-            return s.toString();
-        } catch (IOException ioException) {
-            print("NO_DATA_IN_BODY");
-//            ioException.printStackTrace();
-            //body is empty
-        }
-        return "-1";
-    }
-
-    public byte[] getPanel(HttpExchange exchange, String pageToSend) throws IOException{
-        String directory = serverHome + "/" + pageToSend; // dont need to do the / replace as no space
-        File page = new File( directory );
-        print("Exists / Readable: " + page.exists() + " / " + page.canRead() );
-        return FU.readFromFile(directory);
-    }
 }
 

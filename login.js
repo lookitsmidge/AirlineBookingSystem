@@ -1,3 +1,12 @@
+/**
+ * This function should update the webpage with html data that has been sent via the server
+ * @param data
+ */
+function switch_content(data) {
+    $('#main_content').html(data); // this didnt work before as the tag was for an id
+    // .append is also a function
+}
+
 // this starts when the page loads
 $(document).ready(function() {
     // this runs upon submit of the form
@@ -11,7 +20,7 @@ $(document).ready(function() {
         var data = form.serialize();
 
         // this is the ajax post request
-        $.ajax({
+        var promise = $.ajax({
             method: 'POST',
             url: 'http://localhost:8080/log-in',
             data: data,
@@ -24,7 +33,7 @@ $(document).ready(function() {
             error: function(err, status){
                 console.log(err);}
         }).done( function(data){
-            console.log("form sent");
+            switch_content(data);
         });
     });
 });
