@@ -41,9 +41,16 @@ function on_login_submit(event) {
     });
 }
 
+/**
+ * This function is called when the options div with buttons in it are pressed
+ * @param event
+ */
 function on_options_submit(event) {
-    console.log("log_out_submit");
     event.preventDefault();
+    if( event.target.id == "btn_log_out"){
+        //do something
+        console.log("log out");
+    }
     alert(event.target.id);
 
 }
