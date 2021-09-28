@@ -6,6 +6,7 @@ import java.io.InputStream;
 /**
  * This interface should be implemented by fileutils and
  * used to make sure that it can communicate with the server http handler
+ * @author James Martland
  */
 public interface ServerFiles {
 

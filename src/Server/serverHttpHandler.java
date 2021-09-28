@@ -7,6 +7,10 @@ import java.io.*;
 import java.nio.charset.Charset;
 import java.nio.charset.StandardCharsets;
 
+/**
+ * This class handles the http requests from the web client
+ * @author James Martland
+ */
 public class serverHttpHandler extends Server implements HttpHandler {
     private String serverHome;
 
@@ -74,7 +78,7 @@ public class serverHttpHandler extends Server implements HttpHandler {
                 //checks if user is logged in
 
                 //if not send log in page
-
+                //if user is logged in then
                 print("Sending");
                 String directory = getReqDir( exchange ); // dont need to do the / replace as no space
                 File page = new File( getReqDir( exchange) );
