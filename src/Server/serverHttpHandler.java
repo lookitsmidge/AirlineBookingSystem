@@ -64,6 +64,10 @@ public class serverHttpHandler extends Server implements HttpHandler {
     public void handleGet( HttpExchange exchange ) throws IOException {
         switch( exchange.getRequestURI().toString().replace("%20", " ") ) {
             case "/":
+                print("sending /MainPage.html");
+                sendResponse( exchange, FU.readFromFile( getReqDir( exchange )), 200);
+                break;
+            case "/lif":
                 // send log in page ( main page )
                 sendResponse ( exchange, FU.readFromFile(getReqDir(exchange)), 200);
                 //

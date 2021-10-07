@@ -87,8 +87,9 @@ public class Server {
     public String getReqDir(HttpExchange exchange) {
         //need to improve for efficiency
         String requestDir = exchange.getRequestURI().toString();
-        if ( requestDir == "/" ) {
+        if ( requestDir.equals("/") ) {
             requestDir += "MainPage.html";
+            print("Redirect to MainPage.html");
         }
         print("Dir: " + requestDir);
         requestDir = serverHome + requestDir;

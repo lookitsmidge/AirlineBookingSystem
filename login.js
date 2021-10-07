@@ -5,7 +5,9 @@
 function switch_content(data) {
     $('#main_content').html(data); // this didnt work before as the tag was for an id
     console.log("setting up event listener");
+    // need to find a way to distinguish between what is on the html page so this doesnt run twice
     $('#options').on('click', on_options_submit );
+    $('#log_in').on('submit', on_login_submit );
     // .append is also a function
 }
 
@@ -49,6 +51,22 @@ function on_options_submit(event) {
     event.preventDefault();
     if( event.target.id == "btn_log_out"){
         //do something
+        var promise = $.ajax({
+            method: 'GET',
+            url: 'http://localhost:8080/lif.html',// this needs to be url for the get request to not use /?lif
+            data: null,
+            contentType: null,
+            encode: false,
+            success: function(data){
+                console.log(data);
+                console.log("Log in page requested");
+            },
+            error: function(err, status){
+                console.log(err);
+            }
+        }).done( function(data) {
+            switch_content(data);
+        });
         console.log("log out");
     }
     alert(event.target.id);
